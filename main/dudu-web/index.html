@@ -92,6 +92,19 @@
         <label>接话方式<select id="mode-select"><option value="server_vad">自动接话 · 等待停顿约 1 秒</option></select></label>
         <div class="session-stats"><div><span>首音等待</span><strong id="latency-stat">—</strong></div><div><span>本次 Token</span><strong id="tokens-stat">—</strong></div><div><span>打断次数</span><strong id="interruptions-stat">0</strong></div></div>
         <button id="export-button" class="export-button" disabled>保存本次体验记录</button>
+        <section class="resource-panel" aria-label="本机资源采样">
+          <div class="resource-heading"><strong>本机服务资源</strong><span id="resource-scope">等待采样</span></div>
+          <div class="resource-stats">
+            <div><span>当前 RSS</span><strong id="resource-rss">—</strong></div>
+            <div><span>RSS 峰值</span><strong id="resource-rss-peak">—</strong></div>
+            <div><span>当前 CPU</span><strong id="resource-cpu">—</strong></div>
+            <div><span>CPU 平均 / 峰值</span><strong id="resource-cpu-summary">—</strong></div>
+            <div><span>主机可用内存</span><strong id="resource-available">—</strong></div>
+            <div><span>事件循环延迟</span><strong id="resource-lag">—</strong></div>
+          </div>
+          <p class="settings-note">含 Python 和 FFmpeg 子进程；CPU 100% 表示占满 1 核。每 0.5 秒采样，内存使用 MiB。</p>
+          <button id="resource-export" class="export-button" type="button">保存资源采样</button>
+        </section>
       </div></details>
       <div class="provider-note" id="provider-label">本地语音识别 · 文本对话 · Edge TTS</div>
     </div>

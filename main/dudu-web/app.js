@@ -13,6 +13,7 @@ let totalTokens=0, interruptions=0, lastLatency=null, inputRow=null, outputRow=n
 const inputRows=new Map();
 let sessionModel='', sessionMode='', connectionTimer, callTimer;
 let previewing=false, previewAudio=null;
+let resourceSessionId=null, resourcePollPending=false;
 let theme='gordon', sessionVoice=DEFAULT_VOICE;
 const sources=new Set();
 const character=()=>THEMES[theme];
@@ -131,6 +132,7 @@ function send(e){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify(e));}
 function onEvent(e){
   switch(e.type){
     case 'session.updated':
+      resourceSessionId=e.resource_session_id||null;
       if(state!=='connecting')break;
       clearTimeout(connectionTimer);startedAt=Date.now();setState('listening');
       callTimer=setTimeout(()=>{hangup('ended');note('本次已通话 30 分钟，可以稍后再打给好朋友。');},30*60*1000);
@@ -189,6 +191,7 @@ function drawWave(){
   raf=requestAnimationFrame(drawWave);
 }
 function resetSession(){
+  resourceSessionId=null;
   totalTokens=0;interruptions=0;lastLatency=null;lastSpeechStop=0;usageRecords=[];allEntries=[];inputRow=null;outputRow=null;
   inputRows.clear();
   $('tokens-stat').textContent='—';$('latency-stat').textContent='—';$('interruptions-stat').textContent='0';$('duration').textContent='00:00';$('latency-label').textContent='随时可以插话';
@@ -280,11 +283,44 @@ ui.interrupt.addEventListener('click',()=>interrupt(true));
 $('clear-button').addEventListener('click',()=>{ui.transcript.replaceChildren(emptyTemplate.cloneNode(true));inputRows.clear();inputRow=null;outputRow=null;});
 $('text-form').addEventListener('submit',e=>{e.preventDefault();const input=$('text-input');sendText(input.value);input.value='';});
 document.querySelectorAll('.scene').forEach(button=>button.addEventListener('click',()=>{persona=button.dataset.persona;document.querySelectorAll('.scene').forEach(b=>{const selected=b.dataset.persona===persona;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});}));
-$('export-button').addEventListener('click',()=>{
-  const report={createdAt:new Date().toISOString(),theme,voice:sessionVoice,model:sessionModel,turnDetection:sessionMode,interruptions,totalTokens,usageRecords,transcript:allEntries};
+$('export-button').addEventListener('click',async()=>{
+  const resources=await fetchResources(true);
+  const report={createdAt:new Date().toISOString(),theme,voice:sessionVoice,model:sessionModel,turnDetection:sessionMode,interruptions,totalTokens,usageRecords,transcript:allEntries,resources};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=`嘟嘟电话-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 window.addEventListener('pagehide',()=>hangup());
+async function fetchResources(includeSamples=false){
+  const query=new URLSearchParams();
+  if(resourceSessionId)query.set('session_id',resourceSessionId);
+  if(includeSamples)query.set('samples','1');
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4000);
+  try{
+    const response=await fetch(`/api/resources?${query}`,{cache:'no-store',signal:controller.signal});
+    if(!response.ok)return null;
+    const data=await response.json();
+    const current=data.current,summary=data.session?.summary||data.window;
+    if(!current)return data;
+    const mib=value=>`${(value/1048576).toFixed(0)} MiB`;
+    $('resource-rss').textContent=mib(current.rss_bytes);
+    $('resource-rss-peak').textContent=summary.rss_bytes?mib(summary.rss_bytes.max):'—';
+    $('resource-cpu').textContent=current.cpu_core_percent===null?'—':`${current.cpu_core_percent.toFixed(1)}%`;
+    $('resource-cpu-summary').textContent=summary.cpu_core_percent?`${summary.cpu_core_percent.mean.toFixed(1)}% / ${summary.cpu_core_percent.max.toFixed(1)}%`:'—';
+    $('resource-available').textContent=mib(current.host_available_bytes);
+    $('resource-lag').textContent=current.event_loop_lag_ms===null?'—':`${current.event_loop_lag_ms.toFixed(1)} ms`;
+    $('resource-scope').textContent=data.session?'本次通话统计':'服务采样统计';
+    return data;
+  }catch{return null;}finally{clearTimeout(timeout);}
+}
+$('resource-export').addEventListener('click',async()=>{
+  const data=await fetchResources(true);if(!data){note('暂时无法读取资源采样，请检查本地服务。');return;}
+  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download=`嘟嘟电话-资源-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+setInterval(async()=>{
+  if(document.hidden||!$('parent-dialog').open||resourcePollPending)return;
+  resourcePollPending=true;
+  try{await fetchResources();}finally{resourcePollPending=false;}
+},1000);
 async function refreshConnection(){
   let health;
   try{const response=await fetch('/api/health',{cache:'no-store'});if(!response.ok)throw new Error();health=await response.json();}
@@ -298,5 +334,5 @@ async function refreshConnection(){
 window.addEventListener('offline',()=>{if(!['idle','ended','error'].includes(state))hangup('ended');refreshConnection();});
 window.addEventListener('online',refreshConnection);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshConnection();});
-function init(){setupResponsiveLayout();setupVoices();chooseTheme('gordon');$('provider-label').textContent='本地语音识别 · 文本对话 · Edge TTS';refreshConnection();}
+function init(){setupResponsiveLayout();setupVoices();chooseTheme('gordon');$('provider-label').textContent='本地语音识别 · 文本对话 · Edge TTS';refreshConnection();fetchResources();}
 init();

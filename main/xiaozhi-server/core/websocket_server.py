@@ -131,11 +131,16 @@ class WebSocketServer:
             self._intent,
             self,  # 传入server实例
         )
+        resources = getattr(self, "resource_monitor", None)
+        if resources:
+            resources.begin(handler.session_id)
         try:
             await handler.handle_connection(websocket)
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"处理连接时出错: {e}")
         finally:
+            if resources:
+                resources.end(handler.session_id)
             # 强制关闭连接（如果还没有关闭的话）
             try:
                 # 安全地检查WebSocket状态并关闭

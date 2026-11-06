@@ -22,11 +22,12 @@ VOICES = {
 
 
 class BrowserBridge:
-    def __init__(self, ws, backend_url, profiles, sessions):
+    def __init__(self, ws, backend_url, profiles, sessions, resources=None):
         self.ws = ws
         self.backend_url = backend_url
         self.profiles = profiles
         self.sessions = sessions
+        self.resources = resources
         self.device_id = "browser-" + uuid.uuid4().hex
         self.session_id = None
         self.backend = None
@@ -67,7 +68,7 @@ class BrowserBridge:
         self.sessions[self.session_id] = self
         await self.native({"type": "listen", "state": "start", "mode": "realtime"})
         self.receiver = asyncio.create_task(self.receive())
-        await self.emit({"type": "session.updated"})
+        await self.emit({"type": "session.updated", "resource_session_id": self.session_id})
 
     async def native(self, event):
         if self.backend:
@@ -160,8 +161,9 @@ class BrowserBridge:
             await self.backend.close()
 
 
-def create_web_app(server, configured, port):
+def create_web_app(server, configured, port, resources=None):
     profiles, sessions = {}, {}
+    server.resource_monitor = resources
     original_config = server.get_connection_config
 
     def connection_config(headers):
@@ -186,6 +188,27 @@ def create_web_app(server, configured, port):
     server._llm.usage_callback = usage_callback
     app = web.Application(client_max_size=128 * 1024)
 
+    async def resource_snapshot(request):
+        if resources is None:
+            raise web.HTTPServiceUnavailable(text="Resource sampling is not enabled")
+        return web.json_response(resources.snapshot(
+            request.query.get("session_id"), request.query.get("samples") == "1"))
+
+    async def resource_lifecycle(app):
+        async def lag_sampler():
+            while True:
+                target = loop.time() + .5
+                await asyncio.sleep(.5)
+                resources.event_loop_lag_ms = round(max(0, loop.time() - target) * 1000, 2)
+
+        task = asyncio.create_task(lag_sampler())
+        yield
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+    if resources:
+        app.cleanup_ctx.append(resource_lifecycle)
+
     async def health(request):
         return web.json_response({"ready": True, "configured": configured,
             "model": server._llm.model_name, "asr": "SenseVoice Small (local)",
@@ -200,7 +223,7 @@ def create_web_app(server, configured, port):
             raise web.HTTPServiceUnavailable(text="请先配置 .env 中的 DASHSCOPE_API_KEY")
         ws = web.WebSocketResponse(heartbeat=20, max_msg_size=128 * 1024)
         await ws.prepare(request)
-        bridge = BrowserBridge(ws, f"ws://127.0.0.1:{port}/xiaozhi/v1/", profiles, sessions)
+        bridge = BrowserBridge(ws, f"ws://127.0.0.1:{port}/xiaozhi/v1/", profiles, sessions, resources)
         try:
             async for message in ws:
                 if message.type == WSMsgType.TEXT:
@@ -224,6 +247,9 @@ def create_web_app(server, configured, port):
         communicate = edge_tts.Communicate(text, voice=voice, rate="-10%",
                                            proxy=os.getenv("EDGE_TTS_PROXY") or None)
         audio = bytearray()
+        preview_id = "preview-" + uuid.uuid4().hex
+        if resources:
+            resources.begin(preview_id, kind="preview")
         try:
             async with asyncio.timeout(30):
                 async for chunk in communicate.stream():
@@ -231,6 +257,9 @@ def create_web_app(server, configured, port):
                         audio.extend(chunk["data"])
         except Exception:
             raise web.HTTPBadGateway(text="Edge TTS 暂时不可用，请检查网络或 EDGE_TTS_PROXY。")
+        finally:
+            if resources:
+                resources.end(preview_id)
         return web.Response(body=audio, content_type="audio/mpeg", headers={"Cache-Control": "no-store"})
 
     async def static(request):
@@ -241,6 +270,7 @@ def create_web_app(server, configured, port):
         return web.FileResponse(target, headers={"Cache-Control": "no-cache"})
 
     app.router.add_get("/api/health", health)
+    app.router.add_get("/api/resources", resource_snapshot)
     app.router.add_get("/api/preview", preview)
     app.router.add_get("/ws", websocket)
     app.router.add_get("/{path:.*}", static)

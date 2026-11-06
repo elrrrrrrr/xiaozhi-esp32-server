@@ -42,12 +42,12 @@ def prepare():
     return config, bool(key)
 
 
-async def run(config, configured):
+async def run(config, configured, resources):
     from aiohttp import web
     from core.websocket_server import WebSocketServer
     from dudu_web import create_web_app
     server = WebSocketServer(config)
-    app = create_web_app(server, configured, config["server"]["port"])
+    app = create_web_app(server, configured, config["server"]["port"], resources)
     runner = web.AppRunner(app)
     await runner.setup()
     host = os.getenv("DUDU_HOST", "127.0.0.1")
@@ -77,5 +77,10 @@ async def run(config, configured):
 
 
 if __name__ == "__main__":
-    config, configured = prepare()
-    asyncio.run(run(config, configured))
+    from dudu_resources import ResourceMonitor
+    resources = ResourceMonitor().start()
+    try:
+        config, configured = prepare()
+        asyncio.run(run(config, configured, resources))
+    finally:
+        resources.stop()
