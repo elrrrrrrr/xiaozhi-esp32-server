@@ -1,0 +1,25 @@
+# Lightweight macOS profile: no torch/funasr/management UI required.
+aiohttp>=3.11,<4
+websockets==14.2
+openai>=2.8,<3
+edge-tts>=7.3,<8
+sherpa-onnx>=1.12,<2
+onnxruntime>=1.20,<2
+numpy>=1.26,<3
+loguru>=0.7,<1
+PyYAML>=6,<7
+opuslib-next==1.3.1
+pydub==0.25.1
+audioop-lts; python_version >= '3.13'
+requests>=2.32,<3
+mcp>=2.3,<3
+cnlunar>=0.2,<1
+beautifulsoup4>=4.12,<5
+markitdown>=0.1,<1
+psutil>=7,<8
+Jinja2>=3.1,<4
+PyJWT>=2.10,<3
+aioconsole>=0.8,<1
+python-dotenv>=1.0,<2
+portalocker>=3.2,<4
+ruamel.yaml>=0.18,<0.19

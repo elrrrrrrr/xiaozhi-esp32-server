@@ -378,7 +378,12 @@ class ConnectionHandler:
                     return
 
             # 入口处直接解码PCM，避免VAD和ASR重复解码
-            pcm_frame = self._decode_opus_packet(message)
+            # Browser AudioWorklet sends 16 kHz mono signed little-endian PCM.
+            # ESP32 clients retain the existing Opus transport.
+            if self.audio_format == "pcm" and self.config.get("dudu_web", False):
+                pcm_frame = message if len(message) % 2 == 0 else None
+            else:
+                pcm_frame = self._decode_opus_packet(message)
             if pcm_frame:
                 self.asr_audio_queue.put(pcm_frame)
 
@@ -1154,7 +1159,7 @@ class ConnectionHandler:
         emotion_flag = True
         try:
             for response in llm_responses:
-                if self.client_abort:
+                if self.client_abort or current_sentence_id != self.sentence_id:
                     break
                 if self.intent_type == "function_call" and functions is not None:
                     content, tools_call = response

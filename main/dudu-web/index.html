@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7fb"><meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="小电话">
+  <meta name="app-assets" content="{&quot;/voices.js&quot;:&quot;/voices.js&quot;,&quot;/session.js&quot;:&quot;/session.js&quot;,&quot;/config.js&quot;:&quot;/config.js&quot;,&quot;/themes.js&quot;:&quot;/themes.js&quot;,&quot;/capture-worklet.js&quot;:&quot;/capture-worklet.js&quot;,&quot;/style.css&quot;:&quot;/style.css&quot;,&quot;/app.js&quot;:&quot;/app.js&quot;,&quot;/assets/gordon.svg&quot;:&quot;/assets/gordon.svg&quot;,&quot;/assets/gordon-3d.png&quot;:&quot;/assets/gordon-3d.png&quot;,&quot;/assets/marshall-3d.png&quot;:&quot;/assets/marshall-3d.png&quot;,&quot;/assets/bunny-3d.png&quot;:&quot;/assets/bunny-3d.png&quot;,&quot;/assets/app-icon.svg&quot;:&quot;/assets/app-icon.svg&quot;,&quot;/assets/app-icon-180.png&quot;:&quot;/assets/app-icon-180.png&quot;,&quot;/assets/app-icon-192.png&quot;:&quot;/assets/app-icon-192.png&quot;,&quot;/assets/app-icon-512.png&quot;:&quot;/assets/app-icon-512.png&quot;}">
+  <title>嘟嘟的小电话 · 好朋友来接啦</title>
+  <link rel="icon" href="/assets/gordon.svg"><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
+  <link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/assets/app-icon-180.png">
+</head>
+<body data-theme="gordon">
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M8.1 3.5 10 7.9 7.7 10a15 15 0 0 0 6.3 6.3l2.1-2.3 4.4 1.9v3a2 2 0 0 1-2.2 2C10 20.3 3.7 14 3.1 5.7a2 2 0 0 1 2-2.2z"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9.6 3-.7 2.2-2 .9L4.8 5l-2 3.5 1.6 1.6-.1 2.5-1.5 1.6 2 3.5 2.2-.5 2 1.2.6 2.1h4.1l.7-2.2 2-.9 2.1.5 2-3.5-1.6-1.6.1-2.4 1.5-1.7-2-3.5-2.2.5-2-1.1-.6-2.2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 11.4a8.4 8.4 0 0 1-8.7 8.1 10 10 0 0 1-3.5-.6l-4.8 1.6 1.4-4.4a7.8 7.8 0 0 1-1.7-4.7 8.4 8.4 0 0 1 8.6-8.1 8.4 8.4 0 0 1 8.7 8.1Z"/><path d="M8 11.4h.1m3.8 0h.1m3.8 0h.1"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+  </defs></svg>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="嘟嘟的小电话首页"><span class="brand-icon"><svg aria-hidden="true"><use href="#i-phone"/></svg><i></i></span><span>嘟嘟的小电话</span></a>
+    <div class="topbar-right"><button class="mobile-tool" id="transcript-button" type="button" aria-label="查看通话字幕" aria-haspopup="dialog"><svg aria-hidden="true"><use href="#i-chat"/></svg></button><div class="local-status" role="status"><span class="dot" id="connection-dot"></span><span id="connection-label">正在连接</span></div><button class="parent-button" id="settings-button" type="button" aria-label="家长设置" aria-haspopup="dialog"><svg aria-hidden="true"><use href="#i-settings"/></svg><span>家长设置</span></button><span class="child-avatar" title="嘟嘟的专属电话" aria-label="嘟嘟">嘟</span></div>
+  </header>
+
+  <main class="app-shell">
+    <div class="workspace layout">
+      <section class="intro" aria-label="选择伙伴与话题">
+        <div class="welcome-bar"><div><p class="welcome-caption">嘟嘟的好朋友专线</p><h1 id="intro-title">歌德来啦，<br>一起出发！</h1><p id="intro-copy">嘟嘟，坐好了吗？<br>今天的小小冒险，由你来决定。</p></div><span class="welcome-doodle" aria-hidden="true"><svg><use href="#i-spark"/></svg><i></i></span></div>
+        <fieldset class="theme-picker"><legend>今天，想给谁打电话？</legend>
+          <button class="theme-card selected" type="button" data-theme="gordon" aria-pressed="true"><span class="theme-portrait"><img src="/assets/gordon-3d.png" alt=""><i aria-hidden="true">✓</i></span><span class="theme-copy"><strong>歌德</strong><small>阳光冒险家</small></span></button>
+          <button class="theme-card" type="button" data-theme="marshall" aria-pressed="false"><span class="theme-portrait"><img src="/assets/marshall-3d.png" alt=""><i aria-hidden="true">✓</i></span><span class="theme-copy"><strong>毛毛</strong><small>勇敢小队友</small></span></button>
+          <button class="theme-card" type="button" data-theme="bunny" aria-pressed="false"><span class="theme-portrait"><img src="/assets/bunny-3d.png" alt=""><i aria-hidden="true">✓</i></span><span class="theme-copy"><strong>小兔子</strong><small>软萌森林朋友</small></span></button>
+        </fieldset>
+        <fieldset class="scenes"><legend>今天玩什么？</legend>
+          <button class="scene selected" data-persona="friend" aria-pressed="true"><svg aria-hidden="true"><use href="#i-chat"/></svg>聊聊今天</button>
+          <button class="scene" data-persona="story" aria-pressed="false"><svg aria-hidden="true"><use href="#i-book"/></svg>讲个故事</button>
+          <button class="scene" data-persona="imagine" aria-pressed="false"><svg aria-hidden="true"><use href="#i-spark"/></svg>玩点想象</button>
+        </fieldset>
+      </section>
+      <section class="call-area" aria-label="伙伴电话机">
+        <section class="phone" aria-label="歌德的电话机">
+          <div class="device-head"><div class="speaker-grille" aria-hidden="true"></div><span class="device-indicator"><i id="phone-led" class="phone-led"></i><span id="device-state">待机</span></span></div>
+          <div class="phone-screen">
+            <div class="scene-art" id="avatar"><img id="character-image" src="/assets/gordon-3d.png" alt="歌德在阳光森林等嘟嘟来玩" fetchpriority="high"></div>
+            <div class="screen-top"><span class="place-tag"><span id="screen-mode">阳光森林 · 歌德专线</span></span><time id="duration">00:00</time></div>
+            <span class="character-tag sr-only" id="character-tag">百变校巴 · 歌德</span>
+            <div class="screen-status"><div><h2 id="call-title">歌德准备好了</h2><p id="call-subtitle">按下绿色按钮，一起出发吧</p></div><div class="wave" id="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="screen-footer"><span id="mic-label">麦克风尚未开启</span><span id="latency-label">随时可以插话</span></div>
+          </div>
+          <div id="message" class="message" role="status"></div>
+          <div class="phone-controls">
+            <div class="secondary-control"><button id="mute-button" class="round-button" disabled aria-label="静音麦克风"><svg aria-hidden="true"><use href="#i-mic"/></svg></button><span id="mute-label">静音</span></div>
+            <div class="primary-control"><button id="call-button" class="call-button" aria-label="拨打电话"><svg aria-hidden="true"><use href="#i-phone"/></svg></button><span id="call-button-label">拨打电话</span></div>
+            <div class="secondary-control"><button id="interrupt-button" class="round-button" disabled aria-label="打断当前回答"><svg aria-hidden="true"><use href="#i-stop"/></svg></button><span>打断</span></div>
+          </div>
+
+          <div class="device-bottom"><span>嘟嘟的好朋友专线</span><span class="bottom-slots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+        </section>
+
+      </section>
+
+      <aside class="side-panel" id="conversation-sidebar" aria-label="通话字幕">
+        <section class="conversation-panel">
+          <div class="panel-heading"><div><svg aria-hidden="true"><use href="#i-chat"/></svg><h2>聊天小记</h2></div><button id="clear-button" class="text-button" title="仅清空本页字幕">清空</button></div>
+          <div id="transcript" class="transcript" role="log" aria-label="通话字幕" aria-relevant="additions text"><div class="empty-state" id="empty-state"><div class="empty-illustration" aria-hidden="true"><svg><use href="#i-chat"/></svg><span><svg><use href="#i-spark"/></svg></span></div><p>打个电话，<br>聊聊今天的快乐。</p><small>你们的小故事，会出现在这里</small></div></div>
+          <form id="text-form" class="text-form"><input id="text-input" aria-label="给好朋友发一句话" placeholder="也可以打字聊聊…" maxlength="1200" disabled><button id="send-button" type="submit" aria-label="发送文字" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></form>
+          <p class="privacy-note"><svg aria-hidden="true"><use href="#i-lock"/></svg>字幕仅保留在当前页面</p>
+        </section>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>小小电话，慢慢聊。</span><span><i></i>为嘟嘟准备的好朋友专线</span></footer>
+  </main>
+
+  <dialog class="parent-dialog" id="parent-dialog" aria-labelledby="settings-title">
+    <div class="dialog-heading"><div><span>家长的小工具箱</span><h2 id="settings-title">声音与通话</h2></div><button id="settings-close" class="icon-button" type="button" aria-label="关闭家长设置"><span class="mobile-done">完成</span><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
+    <div class="settings-body" id="settings">
+      <div class="mobile-preferences" id="mobile-preferences"></div>
+      <div class="settings-heading"><strong>选一个喜欢的声音</strong><span id="voice-count">内置声音</span></div>
+      <div id="voice-shortcuts" class="voice-shortcuts" aria-label="推荐卡通音色"></div>
+      <label>全部内置音色<select id="voice-select" aria-describedby="voice-description"><option value="zh-CN-XiaoxiaoNeural">晓晓 · 温暖亲切</option></select></label>
+      <p id="voice-description" class="voice-description">温暖亲切的普通话。</p>
+      <label id="custom-voice-label" hidden>克隆音色 ID<input id="custom-voice" placeholder="填入百炼返回的 voice_id" maxlength="160" autocomplete="off"></label>
+      <button id="preview-button" class="preview-button" type="button"><span aria-hidden="true">▷</span> 试听这个声音</button>
+      <p class="settings-note">试听不打开麦克风，换声音在下一通电话生效。</p>
+      <details class="advanced-settings"><summary>更多通话设置<span aria-hidden="true">⌄</span></summary><div>
+        <label>对话模型<select id="model-select"><option value="qwen-flash">Qwen Flash · 文本对话</option></select></label>
+        <label>接话方式<select id="mode-select"><option value="server_vad">自动接话 · 等待停顿约 1 秒</option></select></label>
+        <div class="session-stats"><div><span>首音等待</span><strong id="latency-stat">—</strong></div><div><span>本次 Token</span><strong id="tokens-stat">—</strong></div><div><span>打断次数</span><strong id="interruptions-stat">0</strong></div></div>
+        <button id="export-button" class="export-button" disabled>保存本次体验记录</button>
+      </div></details>
+      <div class="provider-note" id="provider-label">本地语音识别 · 文本对话 · Edge TTS</div>
+    </div>
+  </dialog>
+  <dialog class="transcript-dialog" id="conversation-dialog" aria-labelledby="conversation-title">
+    <div class="dialog-heading"><div><span>这通电话的小故事</span><h2 id="conversation-title">聊天小记</h2></div><button id="transcript-close" class="icon-button" type="button" aria-label="关闭通话字幕"><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
+    <div class="mobile-conversation-slot" id="mobile-conversation-slot"></div>
+  </dialog>
+</body>
+</html>

@@ -1,3 +1,5 @@
+> 本 Fork 的 Mac 本地“嘟嘟的小电话”测试入口：[初始化与启动说明](README-DUDU.md)。使用本地 ASR、文本模型 API 和 Edge TTS，复用原电话前端。
+
 [![Banners](docs/images/banner1.png)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
 <h1 align="center">小智后端服务xiaozhi-esp32-server</h1>

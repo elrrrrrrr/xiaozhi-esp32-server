@@ -28,6 +28,9 @@ THINKING_DISABLED_MODEL_EXCLUSIONS = {
 class LLMProvider(LLMProviderBase):
     def __init__(self, config):
         self.model_name = config.get("model_name")
+        self.report_usage = bool(config.get("report_usage", False))
+        self.history_turns = int(config.get("history_turns", 0))
+        self.usage_callback = None
         # 可选实例级思考强度: off/disabled/none/disable | low/medium/high | 空/其他=按域名默认
         self.thinking_mode = str(config.get("thinking") or "").strip().lower()
         self.api_key = config.get("api_key")
@@ -119,12 +122,18 @@ class LLMProvider(LLMProviderBase):
 
     def response(self, session_id, dialogue, **kwargs):
         dialogue = self.normalize_dialogue(dialogue)
+        if self.history_turns > 0:
+            system = [m for m in dialogue if m["role"] == "system"]
+            history = [m for m in dialogue if m["role"] != "system"]
+            dialogue = system + history[-(2 * self.history_turns + 1):]
 
         request_params = {
             "model": self.model_name,
             "messages": dialogue,
             "stream": True,
         }
+        if self.report_usage:
+            request_params["stream_options"] = {"include_usage": True}
 
         # 添加可选参数,只有当参数不为None时才添加
         optional_params = {
@@ -146,6 +155,12 @@ class LLMProvider(LLMProviderBase):
         is_active = True
         try:            
             for chunk in responses:
+                if chunk.usage and self.usage_callback:
+                    self.usage_callback(session_id, {
+                        "input_tokens": chunk.usage.prompt_tokens,
+                        "output_tokens": chunk.usage.completion_tokens,
+                        "total_tokens": chunk.usage.total_tokens,
+                    })
                 try:
                     delta = chunk.choices[0].delta if getattr(chunk, "choices", None) else None
                     content = getattr(delta, "content", "") if delta else ""

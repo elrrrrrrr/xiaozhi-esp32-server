@@ -17,6 +17,13 @@ TAG = __name__
 async def handleAudioMessage(conn: "ConnectionHandler", pcm_frame):
     # 当前片段是否有人说话
     have_voice = conn.vad.is_vad(conn, pcm_frame)
+    if conn.config.get("dudu_web", False):
+        if have_voice and not getattr(conn, "_dudu_user_speaking", False):
+            conn._dudu_user_speaking = True
+            await conn.websocket.send(json.dumps({"type": "dudu.speech_started"}))
+        if conn.client_voice_stop:
+            conn._dudu_user_speaking = False
+            await conn.websocket.send(json.dumps({"type": "dudu.speech_stopped"}))
     # 如果设备刚刚被唤醒，短暂忽略VAD检测
     if hasattr(conn, "just_woken_up") and conn.just_woken_up:
         have_voice = False
@@ -25,7 +32,7 @@ async def handleAudioMessage(conn: "ConnectionHandler", pcm_frame):
             conn.vad_resume_task = asyncio.create_task(resume_vad_detection(conn))
         return
     # 服务端AEC功能需要实时触发打断
-    if conn.client_aec and have_voice:
+    if (conn.client_aec or conn.config.get("dudu_web", False)) and have_voice:
         if conn.client_is_speaking and conn.client_listen_mode != "manual":
             await handleAbortMessage(conn)
     # 设备长时间空闲检测，用于say goodbye

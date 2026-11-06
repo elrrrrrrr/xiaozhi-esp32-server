@@ -1,0 +1,59 @@
+# Merged over main/xiaozhi-server/config.yaml by scripts/start.sh.
+server:
+  ip: 127.0.0.1
+  port: 8000
+  http_port: 0
+  auth:
+    enabled: false
+dudu_web: true
+delete_audio: true
+enable_greeting: false
+enable_wakeup_words_response_cache: false
+close_connection_no_voice_time: 300
+end_prompt:
+  enable: false
+prompt_template: dudu-prompt.txt
+prompt: |
+  你是陪四岁孩子嘟嘟聊天的AI伙伴。用清楚自然的普通话，每轮一到两句，15到45个汉字。
+  一次最多问一个问题。允许停顿、重复、跑题和不完整的句子；听不清就简短确认，不编造。
+  想象游戏要区分现实。真实危险请他找身边的大人。不索取隐私，不要求保密或制造依赖。
+  他想结束就温暖道别。被问身份时坦诚自己是AI伙伴。
+system_error_response: 刚才没连上，我们稍等一下再试试吧。
+selected_module:
+  VAD: SileroVAD
+  ASR: SherpaASR
+  LLM: AliLLM
+  TTS: EdgeTTS
+  Memory: nomem
+  Intent: nointent
+VAD:
+  SileroVAD:
+    min_silence_duration_ms: 1000
+    threshold: 0.5
+    threshold_low: 0.3
+ASR:
+  SherpaASR:
+    model_dir: models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17
+    model_type: sense_voice
+    language: zh
+LLM:
+  AliLLM:
+    api_key: not-configured
+    max_tokens: 180
+    history_turns: 5
+    report_usage: true
+    timeout: 25
+TTS:
+  EdgeTTS:
+    type: edge_stream
+    voice: zh-CN-XiaoxiaoNeural
+    volume: 0
+    rate: -10
+    pitch: 0
+log:
+  log_level: WARNING
+context_providers: []
+plugins: {}
+mcp_endpoint: null
+voiceprint:
+  enabled: false

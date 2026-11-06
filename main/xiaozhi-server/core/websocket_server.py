@@ -40,6 +40,10 @@ TAG = __name__
 
 
 class WebSocketServer:
+    def get_connection_config(self, headers):
+        """Allow local entrypoints to supply an isolated per-call profile."""
+        return self.config
+
     def __init__(self, config: dict):
         self.config = config
         self.logger = setup_logging(config)
@@ -119,7 +123,7 @@ class WebSocketServer:
             return
         # 创建ConnectionHandler时传入当前server实例
         handler = ConnectionHandler(
-            self.config,
+            self.get_connection_config(websocket.request.headers),
             self._vad,
             self._asr,
             self._llm,
